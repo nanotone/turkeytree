@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+	hello {{ user['email'] }}
+
+	<form action="/logout" method="POST">
+		<input type="submit" value="logout" />
+	</form>
+
+{% endblock %}
