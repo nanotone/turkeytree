@@ -32,7 +32,7 @@ def index(user):
 	if user:
 		return flask.render_template('home.html', user=user)
 	else:
-		return flask.render_template('home.html')
+		return flask.render_template('index.html')
 
 @app.route('/login', methods=['POST'])
 def login():
