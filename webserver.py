@@ -86,9 +86,21 @@ def album_create(user):
 def album(albumid, user):
 	try:
 		album = db.albums.find_one({'_id': bson.ObjectId(albumid)})
-		return "there are probably no events in this album"
-	except bson.errors.InvalidId:
+		assert album
+		return flask.render_template('album.html', album=album)
+	except (AssertionError, bson.errors.InvalidId):
 		return "album not found"
+
+@app.route('/album/<albumid>/upload')
+@auth(required=True)
+def album_upload(albumid, user):
+	try:
+		album = db.albums.find_one({'_id': bson.ObjectId(albumid)})
+		assert album
+		return flask.render_template('upload.html', album=album)
+	except (AssertionError, bson.errors.InvalidId):
+		return "album not found"
+
 
 if __name__ == '__main__':
 	app.secret_key = open('secret_key').read()
