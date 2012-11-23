@@ -11,3 +11,13 @@
 		<input name="name" placeholder="album name" />
 		<input type="submit" />
 	</form>
+	{% for message in get_flashed_messages(category_filter=['album_creation_error']) %}
+		<div style="color:red">{{ message }}</div>
+	{% endfor %}
+
+	<br />
+
+	your albums:
+	{% for album in albums %}
+	<div><a href="/album/{{ album['_id'] }}">{{ album['name'] }}</a></div>
+	{% endfor %}

@@ -14,7 +14,9 @@ def auth(required=True):
 		@functools.wraps(f)
 		def wrapper(*args, **kwargs):
 			try:
-				user = db.users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
+				user = kwargs.get('user')
+				if not user:
+					user = db.users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
 				assert user
 				kwargs['user'] = user
 			except (AssertionError, KeyError, bson.errors.InvalidId):
@@ -30,20 +32,22 @@ def auth(required=True):
 @auth(required=False)
 def index(user):
 	if user:
-		return flask.render_template('home.html', user=user)
+		albums = list(db.albums.find({'owner': user['_id']}))
+		return flask.render_template('home.html', user=user, albums=albums)
 	else:
 		return flask.render_template('index.html')
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-	form = flask.request.form
-	try:
-		user = db.users.find_one({'email': form['email'], 'password': form['password']})
-		if user:
-			flask.session['userid'] = str(user['_id'])
-			return flask.redirect(flask.url_for('index'))
-	except KeyError:
-		pass
+	if flask.request.method == 'POST':
+		form = flask.request.form
+		try:
+			user = db.users.find_one({'email': form['email'], 'password': form['password']})
+			if user:
+				flask.session['userid'] = str(user['_id'])
+				return flask.redirect(flask.url_for('index'))
+		except KeyError:
+			pass
 	return flask.render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -70,7 +74,8 @@ def logout():
 def album_create(user):
 	form = flask.request.form
 	if not form['name']:
-		return flask.render_template('home.html', user=user)
+		flask.flash('album name is required', category='album_creation_error')
+		return flask.redirect(flask.url_for('index'))
 	doc = {'name': form['name'], 'owner': user['_id']}
 	db.albums.insert(doc, safe=True)
 	albumid = str(doc['_id'])
