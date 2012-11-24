@@ -1,4 +1,4 @@
-var dropArea;
+var $dropArea;
 
 function abortEvent(e) {
 	e.preventDefault();
@@ -47,23 +47,26 @@ function dropHandler(e) {
 	for (var i = 0; i < files.length; i++) {
 		previewImage(files[i], i);
 	}
+
+	$dropArea.removeClass('dragover');
 }
 function dragEnterHandler(e) {
-	dropArea.style.backgroundColor = 'red';
+	$dropArea.addClass('dragover');
 	abortEvent(e);
 }
 function dragLeaveHandler(e) {
-	if (e.target == dropArea) {
-		dropArea.style.backgroundColor = 'transparent';
+	console.log("leaving");
+	if (e.target == $dropArea[0]) {
+		$dropArea.removeClass('dragover');
 	}
 	abortEvent(e);
 }
 
 
 $(function() {
-	dropArea = $('#drop-area')[0];
-	dropArea.addEventListener('drop', dropHandler, false);
-	dropArea.addEventListener('dragover', abortEvent, false);
-	dropArea.addEventListener('dragenter', dragEnterHandler, false);
-	dropArea.addEventListener('dragleave', dragLeaveHandler, false);
+	$dropArea = $('#drop-area');
+	$dropArea[0].addEventListener('drop', dropHandler, false);
+	$dropArea[0].addEventListener('dragover', abortEvent, false);
+	$dropArea[0].addEventListener('dragenter', dragEnterHandler, false);
+	$dropArea[0].addEventListener('dragleave', dragLeaveHandler, false);
 });

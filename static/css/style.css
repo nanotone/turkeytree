@@ -2,7 +2,7 @@
 
 body {
 	font-family: "Helvetica Neue", Helvetica, sans-serif;
-	font-size: 16px;
+	font-size: 30px;
 	font-weight: 300;
 }
 
@@ -98,5 +98,10 @@ body {
 
 #drop-area {
 	padding: 40px;
-	border: 4px dashed gray;
+	border: 4px dashed #CFCFCF;
+
+	&.dragover {
+		border-color: #ADADAD;
+		background: rgba(0,0,0,.03);
+	}
 }
