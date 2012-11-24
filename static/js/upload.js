@@ -26,7 +26,7 @@ function dropHandler(e) {
 		xhr.open('post', '/photo', true);
 		var formData = new FormData();
 		formData.append('photo', files[i]);
-		formData.append('tzoffset', (new Date()).getTimezoneOffset());
+		//formData.append('tzoffset', (new Date()).getTimezoneOffset());
 		xhr.send(formData);
 	}
 }

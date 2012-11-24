@@ -14,6 +14,7 @@ EXIF_KEYS = (
 	('F-Number', 'aperture'),
 	('Date and Time (Original)', 'time'),
 	('GPS Time (Atomic Clock)', 'gpstime'),
+	('Orientation', 'orientation'),
 )
 
 
@@ -33,6 +34,10 @@ def get_exif(path):
 	except subprocess.CalledProcessError:
 		return None
 
+def get_dimensions(path):
+	return map(int, subprocess.check_output(['identify', path], universal_newlines=True).split()[2].split('x'))
+
+
 def is_jpeg(path):
 	try:
 		return 'JPEG image data' in subprocess.check_output(['file', path], universal_newlines=True)
@@ -40,6 +45,12 @@ def is_jpeg(path):
 		pass
 	return False
 
+class JSONEncoder(json.JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, bson.ObjectId):
+			return str(obj)
+		return json.JSONEncoder.default(self, obj)
+json_encoder = JSONEncoder()
 
 def auth(required=True):
 	def decorator(f):
@@ -141,14 +152,21 @@ def photo_create(user):
 		return "not jpeg"
 	doc = {'time': time.time()}
 	doc['_id'] = fileid = bson.ObjectId()
-	doc['path'] = path = 'static/upload/%s.jpg' % (fileid)
+	doc['original_path'] = doc['path'] = path = 'static/upload/%s.jpg' % (fileid)
 	photo.save(path)
 	if not is_jpeg(path):
 		return "not jpeg"
-	sha1 = subprocess.check_output(['sha1sum', path], universal_newlines=True).split()[0]
-	doc['sha1'] = sha1
-	print get_exif(path)
-	return "ok"
+	#sha1 = subprocess.check_output(['sha1sum', path], universal_newlines=True).split()[0]
+	#doc['sha1'] = sha1
+	exif = get_exif(path)
+	if exif and exif.get('orientation') != 'Top-left':
+		doc['path'] = 'static/upload/%s_rotated.jpg' % (fileid)
+		subprocess.check_call(['exiftran', '-a', '-o', doc['path'], path])
+		path = doc['path']
+	doc['tn'] = 'static/upload/%s_tn.jpg' % (fileid)
+	subprocess.check_call(['convert', path, '-resize', '200x200>', doc['tn']])
+	doc['tn_size'] = get_dimensions(doc['tn'])
+	return json_encoder.encode(doc)
 
 if __name__ == '__main__':
 	app.secret_key = open('secret_key').read()
