@@ -1,7 +1,6 @@
-{% extends "base.html" %}
+{% extends "app_base.html" %}
 
-{% block head %}
-{{ super() }}
+{% block scripts %}
 	<script type="text/javascript" src="/static/js/upload.js"></script>
 	<script type="text/javascript">
 		var ALBUM_ID = "{{ album['_id'] }}";
@@ -10,7 +9,7 @@
 
 {% block bodyId %}home{% endblock %}
 
-{% block content %}
+{% block main %}
 
 upload some pics to the album {{ album['name'] }}, yo.
 

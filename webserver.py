@@ -130,7 +130,7 @@ def album(albumid, user):
 	try:
 		album = db.albums.find_one({'_id': bson.ObjectId(albumid)})
 		assert album
-		return flask.render_template('album.html', album=album)
+		return flask.render_template('album.html', album=album, user=user)
 	except (AssertionError, bson.errors.InvalidId):
 		return "album not found"
 
@@ -140,7 +140,7 @@ def album_upload(albumid, user):
 	try:
 		album = db.albums.find_one({'_id': bson.ObjectId(albumid)})
 		assert album
-		return flask.render_template('upload.html', album=album)
+		return flask.render_template('upload.html', album=album, user=user)
 	except (AssertionError, bson.errors.InvalidId):
 		return "album not found"
 

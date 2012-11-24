@@ -1,8 +1,11 @@
-	hello {{ user['email'] }}
+{% extends "app_base.html" %}
 
-	<form action="/logout" method="POST">
-		<input type="submit" value="logout" />
-	</form>
+{% block bodyId %}home{% endblock %}
+
+{% block main %}
+<div id="container">
+
+	hello {{ user['email'] }}!
 
 	<br />
 
@@ -21,3 +24,6 @@
 	{% for album in albums %}
 	<div><a href="/album/{{ album['_id'] }}">{{ album['name'] }}</a></div>
 	{% endfor %}
+
+</div>
+{% endblock %}
