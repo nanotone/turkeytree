@@ -7,43 +7,13 @@ import bson
 import flask
 import pymongo
 
-
-EXIF_KEYS = (
-	('Exposure Time', 'exposure'),
-	('ISO Speed Ratings', 'iso'),
-	('F-Number', 'aperture'),
-	('Date and Time (Original)', 'time'),
-	('GPS Time (Atomic Clock)', 'gpstime'),
-	('Orientation', 'orientation'),
-)
+import imglib
 
 
 app = flask.Flask(__name__)
 
 db = pymongo.Connection().turkeytree
 
-
-def get_exif(path):
-	try:
-		exif = subprocess.check_output(['exif', '-m', path], universal_newlines=True)
-		exif = dict(line.split('\t')[:2] for line in exif.split('\n') if '\t' in line)
-		print(exif)
-		exif = {k2: exif[k1] for k1, k2 in EXIF_KEYS}
-		print(exif)
-		return exif
-	except subprocess.CalledProcessError:
-		return None
-
-def get_dimensions(path):
-	return map(int, subprocess.check_output(['identify', path], universal_newlines=True).split()[2].split('x'))
-
-
-def is_jpeg(path):
-	try:
-		return 'JPEG image data' in subprocess.check_output(['file', path], universal_newlines=True)
-	except subprocess.CalledProcessError:
-		pass
-	return False
 
 class JSONEncoder(json.JSONEncoder):
 	def default(self, obj):
@@ -52,33 +22,43 @@ class JSONEncoder(json.JSONEncoder):
 		return json.JSONEncoder.default(self, obj)
 json_encoder = JSONEncoder()
 
+def render_template(template_name, **kwargs):
+	kwargs['user'] = getattr(flask.g, 'user', None)
+	return flask.render_template(template_name + '.html', **kwargs)
+
 def auth(required=True):
 	def decorator(f):
 		@functools.wraps(f)
 		def wrapper(*args, **kwargs):
+			flask.g.user = None
 			try:
 				user = kwargs.get('user')
 				if not user:
 					user = db.users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
 				assert user
-				kwargs['user'] = user
+				flask.g.user = user
 			except (AssertionError, KeyError, bson.errors.InvalidId):
 				if required:
-					return flask.render_template('login.html')
-				kwargs['user'] = None
+					return render_template('login')
 			return f(*args, **kwargs)
 		return wrapper
 	return decorator
 
+def get_album(albumid):
+	try:
+		return db.albums.find_one({'_id': bson.ObjectId(albumid)})
+	except (AssertionError, bson.errors.InvalidId):
+		return None
+
 
 @app.route('/')
 @auth(required=False)
-def index(user):
-	if user:
-		albums = list(db.albums.find({'owner': user['_id']}))
-		return flask.render_template('home.html', user=user, albums=albums)
+def index():
+	if flask.g.user:
+		albums = list(db.albums.find({'owner': flask.g.user['_id']}))
+		return render_template('home', albums=albums)
 	else:
-		return flask.render_template('index.html')
+		return render_template('index')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -91,12 +71,12 @@ def login():
 				return flask.redirect(flask.url_for('index'))
 		except KeyError:
 			pass
-	return flask.render_template('login.html')
+	return render_template('login')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 	if flask.request.method == 'GET':
-		return flask.render_template('register.html')
+		return render_template('register')
 	elif flask.request.method == 'POST':
 		form = flask.request.form
 		doc = {'email': form['email'], 'password': form['password']}
@@ -114,39 +94,35 @@ def logout():
 
 @app.route('/album', methods=['POST'])
 @auth(required=True)
-def album_create(user):
+def album_create():
 	form = flask.request.form
 	if not form['name']:
 		flask.flash('album name is required', category='album_creation_error')
 		return flask.redirect(flask.url_for('index'))
-	doc = {'name': form['name'], 'owner': user['_id']}
+	doc = {'name': form['name'], 'owner': flask.g.user['_id']}
 	db.albums.insert(doc, safe=True)
 	albumid = str(doc['_id'])
 	return flask.redirect(flask.url_for('album', albumid=albumid))
 
 @app.route('/album/<albumid>')
 @auth(required=True)
-def album(albumid, user):
-	try:
-		album = db.albums.find_one({'_id': bson.ObjectId(albumid)})
-		assert album
-		return flask.render_template('album.html', album=album, user=user)
-	except (AssertionError, bson.errors.InvalidId):
+def album(albumid):
+	album = get_album(albumid)
+	if not album:
 		return "album not found"
+	return render_template('album', album=album)
 
 @app.route('/album/<albumid>/upload')
 @auth(required=True)
-def album_upload(albumid, user):
-	try:
-		album = db.albums.find_one({'_id': bson.ObjectId(albumid)})
-		assert album
-		return flask.render_template('upload.html', album=album, user=user)
-	except (AssertionError, bson.errors.InvalidId):
+def album_upload(albumid):
+	album = get_album(albumid)
+	if not album:
 		return "album not found"
+	return render_template('upload', album=album)
 
 @app.route('/photo', methods=['POST'])
 @auth(required=True)
-def photo_create(user):
+def photo_create():
 	photo = flask.request.files.get('photo')
 	if not photo or photo.filename.split('.')[-1].lower() not in ('jpg', 'jpeg'):
 		return "not jpeg"
@@ -154,18 +130,18 @@ def photo_create(user):
 	doc['_id'] = fileid = bson.ObjectId()
 	doc['original_path'] = doc['path'] = path = 'static/upload/%s.jpg' % (fileid)
 	photo.save(path)
-	if not is_jpeg(path):
+	if not imglib.is_jpeg(path):
 		return "not jpeg"
 	#sha1 = subprocess.check_output(['sha1sum', path], universal_newlines=True).split()[0]
 	#doc['sha1'] = sha1
-	exif = get_exif(path)
+	exif = imglib.get_exif(path)
 	if exif and exif.get('orientation') != 'Top-left':
 		doc['path'] = 'static/upload/%s_rotated.jpg' % (fileid)
-		subprocess.check_call(['exiftran', '-a', '-o', doc['path'], path])
+		imglib.auto_orient(path, doc['path'])
 		path = doc['path']
 	doc['tn'] = 'static/upload/%s_tn.jpg' % (fileid)
-	subprocess.check_call(['convert', path, '-resize', '200x200>', doc['tn']])
-	doc['tn_size'] = get_dimensions(doc['tn'])
+	imglib.thumnailize(path, doc['tn'])
+	doc['tn_size'] = imglib.get_dimensions(doc['tn'])
 	return json_encoder.encode(doc)
 
 if __name__ == '__main__':
