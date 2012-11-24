@@ -91,7 +91,7 @@ def register():
 		flask.session['userid'] = str(doc['_id'])
 		return flask.redirect(flask.url_for('index'))
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout')
 def logout():
 	flask.session.pop('userid', None)
 	return flask.redirect(flask.url_for('index'))
