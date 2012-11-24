@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
+{% block head %}
+{{ super() }}
+	<script type="text/javascript" src="/static/js/upload.js"></script>
+	<script type="text/javascript">
+		var ALBUM_ID = "{{ album['_id'] }}";
+	</script>
+{% endblock %}
+
 {% block bodyId %}home{% endblock %}
 
 {% block content %}
 
 upload some pics to the album {{ album['name'] }}, yo.
+
+<div id="drop-area">
+drop files here
+</div>
 
 {% endblock %}

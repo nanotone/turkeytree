@@ -1,12 +1,44 @@
 import functools
+import json
+import subprocess
+import time
 
 import bson
 import flask
 import pymongo
 
+
+EXIF_KEYS = (
+	('Exposure Time', 'exposure'),
+	('ISO Speed Ratings', 'iso'),
+	('F-Number', 'aperture'),
+	('Date and Time (Original)', 'time'),
+	('GPS Time (Atomic Clock)', 'gpstime'),
+)
+
+
 app = flask.Flask(__name__)
 
 db = pymongo.Connection().turkeytree
+
+
+def get_exif(path):
+	try:
+		exif = subprocess.check_output(['exif', '-m', path], universal_newlines=True)
+		exif = dict(line.split('\t')[:2] for line in exif.split('\n') if '\t' in line)
+		print(exif)
+		exif = {k2: exif[k1] for k1, k2 in EXIF_KEYS}
+		print(exif)
+		return exif
+	except subprocess.CalledProcessError:
+		return None
+
+def is_jpeg(path):
+	try:
+		return 'JPEG image data' in subprocess.check_output(['file', path], universal_newlines=True)
+	except subprocess.CalledProcessError:
+		pass
+	return False
 
 
 def auth(required=True):
@@ -101,6 +133,22 @@ def album_upload(albumid, user):
 	except (AssertionError, bson.errors.InvalidId):
 		return "album not found"
 
+@app.route('/photo', methods=['POST'])
+@auth(required=True)
+def photo_create(user):
+	photo = flask.request.files.get('photo')
+	if not photo or photo.filename.split('.')[-1].lower() not in ('jpg', 'jpeg'):
+		return "not jpeg"
+	doc = {'time': time.time()}
+	doc['_id'] = fileid = bson.ObjectId()
+	doc['path'] = path = 'static/upload/%s.jpg' % (fileid)
+	photo.save(path)
+	if not is_jpeg(path):
+		return "not jpeg"
+	sha1 = subprocess.check_output(['sha1sum', path], universal_newlines=True).split()[0]
+	doc['sha1'] = sha1
+	print get_exif(path)
+	return "ok"
 
 if __name__ == '__main__':
 	app.secret_key = open('secret_key').read()
