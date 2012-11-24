@@ -76,3 +76,26 @@ body {
 .button {
 	.fancyButton;
 }
+
+.upload-thumb {
+	position: relative;
+
+	img {
+		width: 100%;
+	}
+}
+
+.progressbar {
+	height: 20px;
+	background: red;
+	width: 0;
+	position: absolute;
+	left: 0;
+	top: 0;
+
+}
+
+#drop-area {
+	padding: 40px;
+	border: 4px dashed gray;
+}
