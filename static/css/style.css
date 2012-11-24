@@ -1,9 +1,65 @@
+@import "compless/all";
+
+body {
+	font-family: "Helvetica Neue", Helvetica, sans-serif;
+	font-size: 16px;
+	font-weight: 300;
+}
+
 #home {
+	#container {
+		width: 600px;
+		margin: 100px auto;
+		text-align: center;
+	}
+
 	h1 {
 		font-weight: bold;
+		font-size: 40px;
+		margin: 20px 0px;
+	}
+
+	p {
+		margin: 20px 0px;
 	}
 }
 
-.big-logo {
 
+.fancyButton (@buttonColor: #ec528d) {
+	@buttonGradient1: hsla(338, 90%, 80%, .8);
+	@buttonGradient2: hsla(338, 90%, 70%, .2);
+
+    display: inline-block;
+    margin: 10px;
+    .border-radius(8px);
+    .box-shadow(#c5376d 0 8px 0, rgba(0, 0, 0, .35) 0 15px 20px);
+    font-size: 16px;
+    color: #fff;
+
+    span {
+	    display: inline-block;
+	    padding: 12px 25px;
+	    background-color: @buttonColor;
+	    .linear-gradient(@buttonGradient1, @buttonGradient2);
+	    .border-radius(8px);
+	    .box-shadow(rgba(255, 255, 255, .15) 0 -1px 1px inset);
+	    line-height: 1;
+	    text-shadow: 0 -1px 1px rgba(175, 49, 95, .7);
+	    font-weight: 500;
+	}
+	
+	&:hover span {
+	    background-color: #ec6a9c;
+	    text-shadow: 0 -1px 1px rgba(175, 49, 95, .9), 0 0 5px rgba(255, 255, 255, .8);
+	}
+
+	&:active, &:focus {
+	    .box-shadow (#c5376d 0 4px 0, rgba(0, 0, 0, .3) 0 6px 10px);
+	    position: relative;
+	    top: 4px;
+	}
+}
+
+.button {
+	.fancyButton;
 }

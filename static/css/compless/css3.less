@@ -1,0 +1,226 @@
+//
+// Display
+//
+.inline-block() {
+    display: -moz-inline-stack;
+    display: inline-block;
+
+    *vertical-align: auto;
+    zoom: 1;
+    *display: inline;
+}
+
+
+//
+// Opacity
+//
+@opacity: .5;
+
+.opacity(@level: @opacity) {
+    opacity: @level;
+}
+
+.transparent() { .opacity(0); }
+.opaque() { .opacity(1); }
+
+
+//
+// Background
+//
+@rgba-background: .5;
+
+.rgba-background(@color, @aplha: @rgba-background) {
+    background: @color;
+
+    @hue: hue(@color);
+    @saturation: saturation(@color);
+    @lightness: lightness(@color);
+    background: hsla(@hue, @saturation, @lightness, @aplha);
+}
+
+
+//
+// Border-radius
+//
+@border-radius: 5px;
+
+.border-radius(@radius: @border-radius) {
+    -webkit-border-radius: @radius;
+    -moz-border-radius: @radius;
+    border-radius: @radius;
+}
+
+// just an alias
+.border-radius(@top-right, @bottom-right, @bottom-left, @top-left) {
+    .border-radius(@arguments);
+}
+
+.border-top-right-radius(@radius) {
+    -webkit-border-top-right-radius: @radius;
+    -moz-border-radius-radius: @radius;
+    border-top-right-radius: @radius;
+}
+
+.border-bottom-right-radius(@radius) {
+    -webkit-border-bottom-right-radius: @radius;
+    -moz-border-radius-bottomright: @radius;
+    border-bottom-right-radius: @radius;
+}
+
+.border-bottom-left-radius(@radius) {
+    -webkit-border-bottom-left-radius: @radius;
+    -moz-border-radius-bottomleft: @radius;
+    border-bottom-left-radius: @radius;
+}
+
+.border-top-left-radius(@radius) {
+    -webkit-border-top-left-radius: @radius;
+    -moz-border-radius-topleft: @radius;
+    border-top-left-radius: @radius;
+}
+
+.border-top-radius(@radius) {
+    .border-top-left-radius(@radius);
+    .border-top-right-radius(@radius);
+}
+
+.border-right-radius(@radius) {
+    .border-top-right-radius(@radius);
+    .border-bottom-right-radius(@radius);
+}
+
+.border-bottom-radius(@radius) {
+    .border-bottom-left-radius(@radius);
+    .border-bottom-right-radius(@radius);
+}
+
+.border-left-radius(@radius) {
+    .border-top-left-radius(@radius);
+    .border-bottom-left-radius(@radius);
+}
+
+
+//
+// Transition
+//
+@transition-property: all;
+@transition-duration: .2s;
+@transition-timing-function: ease;
+@transition-delay: 0;
+
+// unfortunately, for now you can specify only one property with ".transition" mixin
+.transition(
+    @property: @transition-property,
+    @duration: @transition-duration,
+    @timing-function: @transition-timing-function,
+    @delay: @transition-delay) {
+        -webkit-transition: @arguments;
+        -moz-transition: @arguments;
+        -o-transition: @arguments;
+        transition: @arguments;
+}
+
+.transition-property(@property: @transition-property) {
+        -webkit-transition-property: @property;
+        -moz-transition-property: @property;
+        -o-transition-property: @property;
+        transition-property: @property;
+}
+
+.transition-duration(@duration: @transition-duration) {
+    -webkit-transition-duration: @duration;
+    -moz-transition-duration: @duration;
+    -o-transition-duration: @duration;
+    transition-duration: @duration;
+}
+.transition-timing-function(@timing-function: @transition-timing-function) {
+    -webkit-transition-timing-function: @timing-function;
+    -moz-transition-timing-function: @timing-function;
+    -o-transition-timing-function: @timing-function;
+    transition-timing-function: @timing-function;
+}
+.transition-delay(@delay: @transition-delay) {
+    -webkit-transition-delay: @delay;
+    -moz-transition-delay: @delay;
+    -o-transition-delay: @delay;
+    transition-delay: @delay;
+}
+
+
+//
+// Box sizing
+//
+.box-sizing(@box-sizing) {
+    -webkit-box-sizing: @box-sizing;
+    -moz-box-sizing: @box-sizing;
+    box-sizing: @box-sizing;
+}
+
+
+//
+// Gradients
+// (in Compass it is part of Images framework)
+//
+.linear-gradient(@start, @stop) {
+    background-image: -webkit-gradient(
+                    linear,
+                    left top,
+                    left bottom,
+                    color-stop(0, @start),
+                    color-stop(1, @stop));
+
+    background-image: -ms-linear-gradient(
+                    top,
+                    @start,
+                    @stop);
+
+    background-image: -moz-linear-gradient(
+                    center top,
+                    @start 0%,
+                    @stop 100%);
+
+    background-image: linear-gradient(top, @start, @stop);
+}
+
+.linear-gradient(@start, @stop, @fallback) {
+    background: @fallback;
+    .linear-gradient(@start, @stop);
+}
+
+.linear-grayscale-gradient(@start: 0, @stop: 255, @fallback: black) {
+    @from: rgb(@start, @start, @start);
+    @to: rgb(@stop, @stop, @stop);
+
+    .linear-gradient(@from, @to, @fallback);
+}
+
+
+//
+// Font-face
+//
+.font-face(@name, @font-files, @weight: normal, @style: normal) {
+    @font-face {
+        src: @font-files;
+
+        font-family: @name;
+        font-weight: @weight;
+        font-style: @style;
+    }
+}
+
+
+//
+// Box-shadow
+//
+// tinabeans says:
+// solution for allowing multiple box-shadows found here: http://www.toekneestuck.com/blog/2012/05/15/less-css-arguments-variable/
+
+@shadowA: 0 0 5px #333;
+.box-shadow(@shadowA:@shadowA,@shadowB:X, ...) {
+
+    @props: ~`"@{arguments}".replace(/[\[\]]|\,\sX/g, '')`;
+
+    -webkit-box-shadow: @props;
+    -moz-box-shadown: @props;
+    box-shadow: @props;
+}
