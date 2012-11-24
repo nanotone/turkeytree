@@ -37,6 +37,35 @@ body {
 	}
 }
 
+@appWidth: 960px;
+
+#mainHeader {
+	height: 60px;
+	border-bottom: 1px solid #DBDBDB;
+	.box-shadow(rgba(0,0,0,.1) 0px 0px 15px);
+
+	.widthContainer {
+		position: relative;
+		width: @appWidth;
+		margin: 0px auto;
+	}
+
+	h1 {
+		text-align: center;
+	}
+
+	#userInfo {
+		position: absolute;
+		right: 0px;
+		top: 0px;
+	}
+
+}
+
+.app-page #main {
+	width: @appWidth;
+	margin: 0px auto;
+}
 
 .fancyButton (@buttonColor: #ec528d) {
 	@buttonGradient1: hsla(338, 90%, 80%, .8);
