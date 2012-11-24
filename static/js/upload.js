@@ -7,10 +7,11 @@ function abortEvent(e) {
 
 function previewImage(file, i) {
 	var $thumbContainer = $('<div class="upload-thumb" id="thumb"' + i + '"><img /><div class="progressbar"></div></div>');
+	var $img = $thumbContainer.children('img');
+
 	$('body').append($thumbContainer);
 	var reader = new FileReader(); // transforms the image into a data url
 	reader.onload = function(e) {
-		var $img = $thumbContainer.children('img');
 		$img.attr('src', e.target.result);
 		$thumbContainer[$img.width() > $img.height() ? 'width':'height'](150); // voodoo.
 	};
@@ -35,6 +36,15 @@ function previewImage(file, i) {
 	    
 	    $thumbContainer.children('.progressbar').width((100-percent) + '%');
 	});
+
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {  // http response has finished loading
+			var response = JSON.parse(xhr.responseText);
+			$thumbContainer.width(response.tn_size[0]);
+			$thumbContainer.height(response.tn_size[1]);
+			$img.attr('src', '/' + response.tn);  // make this less hackish?
+		}
+	};
 
 	xhr.send(formData);
 }
