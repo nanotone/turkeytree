@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block head %}
+<script src="/static/js/index.js" type="text/javascript"></script>
+{% endblock %}
+
 {% block bodyId %}home{% endblock %}
 
 {% block content %}
@@ -9,8 +13,10 @@
 
 	<p>Easily share photos from the same trip or occasion!</p>
 
-	<a href="login" class="button"><span>Login</span></a>
-	<a href="register" class="button"><span>Register</span></a>
+	<div id="loginRegister">
+		<a id="loginButton" class="button"><span>Login</span></a>
+		<a id="registerButton" class="button"><span>Register</span></a>
+	</div>
 </div><!-- #container -->
 
 {% endblock %}
