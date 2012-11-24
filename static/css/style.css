@@ -87,8 +87,9 @@ body {
 
 .progressbar {
 	height: 20px;
-	background: rgba(255,255,255, .5);
+	background: rgba(255,255,255, .85);
 	width: 100%;
+	height: 100%;
 	position: absolute;
 	left: 0;
 	top: 0;
