@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block bodyId %}home{% endblock %}
+
+{% block content %}
+
+<h3>album name: {{ album['name'] }}</h3>
+
+<div><a href="/album/{{ album['_id'] }}/upload">upload</a></div>
+
+there are probably no photos here.
+
+{% endblock %}
