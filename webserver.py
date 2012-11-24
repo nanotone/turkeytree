@@ -12,7 +12,11 @@ import imglib
 
 app = flask.Flask(__name__)
 
-db = pymongo.Connection().turkeytree
+def get_db():
+	db = getattr(flask.g, 'db', None)
+	if not db:
+		flask.g.db = db = pymongo.Connection().turkeytree
+	return db
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -34,7 +38,7 @@ def auth(required=True):
 			try:
 				user = kwargs.get('user')
 				if not user:
-					user = db.users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
+					user = get_db().users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
 				assert user
 				flask.g.user = user
 			except (AssertionError, KeyError, bson.errors.InvalidId):
@@ -46,7 +50,7 @@ def auth(required=True):
 
 def get_album(albumid):
 	try:
-		return db.albums.find_one({'_id': bson.ObjectId(albumid)})
+		return get_db().albums.find_one({'_id': bson.ObjectId(albumid)})
 	except (AssertionError, bson.errors.InvalidId):
 		return None
 
@@ -55,7 +59,7 @@ def get_album(albumid):
 @auth(required=False)
 def index():
 	if flask.g.user:
-		albums = list(db.albums.find({'owner': flask.g.user['_id']}))
+		albums = list(get_db().albums.find({'owner': flask.g.user['_id']}))
 		return render_template('home', albums=albums)
 	else:
 		return render_template('index')
@@ -65,7 +69,7 @@ def login():
 	if flask.request.method == 'POST':
 		form = flask.request.form
 		try:
-			user = db.users.find_one({'email': form['email'], 'password': form['password']})
+			user = get_db().users.find_one({'email': form['email'], 'password': form['password']})
 			if user:
 				flask.session['userid'] = str(user['_id'])
 				return flask.redirect(flask.url_for('index'))
@@ -81,7 +85,7 @@ def register():
 		form = flask.request.form
 		doc = {'email': form['email'], 'password': form['password']}
 		try:
-			db.users.insert(doc, safe=True)
+			get_db().users.insert(doc, safe=True)
 		except pymongo.errors.DuplicateKeyError:
 			return "that email already exists"
 		flask.session['userid'] = str(doc['_id'])
@@ -100,7 +104,7 @@ def album_create():
 		flask.flash('album name is required', category='album_creation_error')
 		return flask.redirect(flask.url_for('index'))
 	doc = {'name': form['name'], 'owner': flask.g.user['_id']}
-	db.albums.insert(doc, safe=True)
+	get_db().albums.insert(doc, safe=True)
 	albumid = str(doc['_id'])
 	return flask.redirect(flask.url_for('album', albumid=albumid))
 
