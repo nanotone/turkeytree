@@ -1,19 +1,27 @@
 {% extends "base.html" %}
 
+{% block bodyClass %}app-page{% endblock %}
+
 {% block content %}
 	<header id="mainHeader">
+	<div class="widthContainer">
 		<h1>turkeytree!</h1>
 
-		{{ user['email'] }}
+		<div id="userInfo">
+			{{ user['email'] }}
 
-		<a href="/logout">logout</a>
+			<a href="/logout">logout</a>
+		</div>
+	</div>
 	</header>
 
+	<div id="main">
 	{% block main %}
 	{% endblock %}
+	</div>
 
-	<footer>
+	<!-- footer>
 		do we need one? oh well.
-	</footer>
+	</footer -->
 
 {% endblock %}
