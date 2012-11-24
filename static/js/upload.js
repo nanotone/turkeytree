@@ -29,11 +29,11 @@ function previewImage(file, i) {
 
 	    var position = e.position || e.loaded;
 	    var total = e.totalSize || e.total;
-	    var percent = position/total * 50;
+	    var percent = position/total * 100;
 
 
 	    
-	    $thumbContainer.children('.progressbar').width(percent + '%');
+	    $thumbContainer.children('.progressbar').width((100-percent) + '%');
 	});
 
 	xhr.send(formData);
