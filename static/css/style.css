@@ -152,6 +152,7 @@ h1 {
 	@buttonGradient2: hsla(338, 90%, 70%, .2);
 	@buttonShadow: desaturate(darken(@buttonColor, 15%), 15%);
 
+	cursor: pointer;
     display: inline-block;
     margin: 10px;
     outline: none;
