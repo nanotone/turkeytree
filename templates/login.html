@@ -4,13 +4,17 @@
 	<h1>Login</h1>
 
 	<form action="/login" method="POST">
-		<label>Email:</label>
-		<input name="email" type="text" />
+		<div class="form-item">
+			<label>Email:</label>
+			<input name="email" type="text" placeholder="email" />
+		</div>
 
-		<label>Password:</label>
-		<input name="password" type="password" />
+		<div class="form-item">
+			<label>Password:</label>
+			<input name="password" type="password" placeholder="password" />
+		</div>
 
-		<input type="submit" />
+		<button type="submit" value="submit"><span>Submit</span></button>
 	</form>
 
 	or <a href="/register">register</a>
