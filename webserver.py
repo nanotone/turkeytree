@@ -24,7 +24,6 @@ class JSONEncoder(json.JSONEncoder):
 		if isinstance(obj, bson.ObjectId):
 			return str(obj)
 		return json.JSONEncoder.default(self, obj)
-json_encoder = JSONEncoder()
 
 def render_template(template_name, **kwargs):
 	kwargs['user'] = getattr(flask.g, 'user', None)
@@ -36,9 +35,7 @@ def auth(required=True):
 		def wrapper(*args, **kwargs):
 			flask.g.user = None
 			try:
-				user = kwargs.get('user')
-				if not user:
-					user = get_db().users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
+				user = get_db().users.find_one({'_id': bson.ObjectId(flask.session['userid'])})
 				assert user
 				flask.g.user = user
 			except (AssertionError, KeyError, bson.errors.InvalidId):
@@ -53,6 +50,10 @@ def get_album(albumid):
 		return get_db().albums.find_one({'_id': bson.ObjectId(albumid)})
 	except (AssertionError, bson.errors.InvalidId):
 		return None
+
+@app.template_filter('jsonify')
+def jsonify(doc):
+	return JSONEncoder().encode(doc)
 
 
 @app.route('/')
@@ -103,7 +104,7 @@ def album_create():
 	if not form['name']:
 		flask.flash('album name is required', category='album_creation_error')
 		return flask.redirect(flask.url_for('index'))
-	doc = {'name': form['name'], 'owner': flask.g.user['_id']}
+	doc = {'name': form['name'], 'owner': flask.g.user['_id'], 'photos': []}
 	get_db().albums.insert(doc, safe=True)
 	albumid = str(doc['_id'])
 	return flask.redirect(flask.url_for('album', albumid=albumid))
@@ -114,15 +115,26 @@ def album(albumid):
 	album = get_album(albumid)
 	if not album:
 		return "album not found"
-	return render_template('album', album=album)
+	photos = list(get_db().photos.find({'_id': {'$in': album.get('photos', [])}}))
+	return render_template('album', album=album, photos=photos)
 
-@app.route('/album/<albumid>/upload')
+@app.route('/album/<albumid>/upload', methods=['GET', 'POST'])
 @auth(required=True)
 def album_upload(albumid):
 	album = get_album(albumid)
 	if not album:
 		return "album not found"
-	return render_template('upload', album=album)
+	if flask.request.method == 'GET':
+		return render_template('upload', album=album)
+	else:
+		form = flask.request.form
+		try:
+			fileids = list(map(bson.ObjectId, set(form.get('fileids', '').strip().split())))
+			if fileids and get_db().photos.find({'_id': {'$in': fileids}}).count() == len(fileids):
+				get_db().albums.update({'_id': album['_id']}, {'$pushAll': {'photos': fileids}})
+		except Exception:
+			pass  # inform the user
+		return flask.redirect(flask.url_for('album', albumid=albumid))
 
 @app.route('/photo', methods=['POST'])
 @auth(required=True)
@@ -152,7 +164,8 @@ def photo_create():
 	doc['tn'] = 'static/upload/%s_tn.jpg' % (fileid)
 	imglib.thumbnailize(path, doc['tn'])
 	doc['tn_size'] = imglib.get_dimensions(doc['tn'])
-	return json_encoder.encode(doc)
+	get_db().photos.save(doc)
+	return jsonify(doc)
 
 if __name__ == '__main__':
 	app.secret_key = open('secret_key').read()

@@ -41,6 +41,9 @@ function previewImage(file) {
 				+ String(date.getUTCMinutes()) + ":" + String(date.getUTCSeconds()) + " "
 				+ (hour < 12 ? 'am':'pm'));
 			$thumbContainer.children('.time').text(dtstr);
+			var $fileids = $('#fileids');
+			$fileids.val($fileids.val() + ' ' + fileid);
+			$('#submit-button').show();
 		}
 	};
 

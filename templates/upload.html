@@ -12,6 +12,10 @@
 {% block main %}
 
 upload some pics to the album {{ album['name'] }}, yo.
+<form action="/album/{{ album['_id'] }}/upload" method="POST">
+	<input id="fileids" type="hidden" name="fileids" value="" />
+	<input id="submit-button" type="submit" style="display: none" />
+</form>
 
 <div id="drop-area">
 drop files here
