@@ -37,3 +37,4 @@ nosetests.xml
 *.swp
 .DS_Store
 secret_key
+static/upload

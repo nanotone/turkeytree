@@ -8,6 +8,13 @@
 
 <div><a href="/album/{{ album['_id'] }}/upload">upload</a></div>
 
-there are probably no photos here.
+<script type="text/javascript">
+	var PHOTOS = {{ photos|jsonify|safe }};
+	$(function() {
+		for (var i = 0; i < PHOTOS.length; i++) {
+			$('body').append($('<img src="/' + PHOTOS[i].tn + '" />'));
+		}
+	});
+</script>
 
 {% endblock %}
