@@ -40,7 +40,7 @@ def auth(required=True):
 				flask.g.user = user
 			except (AssertionError, KeyError, bson.errors.InvalidId):
 				if required:
-					return render_template('login')
+					return flask.redirect(flask.url_for('index'))
 			return f(*args, **kwargs)
 		return wrapper
 	return decorator
@@ -65,18 +65,17 @@ def index():
 	else:
 		return render_template('index')
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-	if flask.request.method == 'POST':
-		form = flask.request.form
-		try:
-			user = get_db().users.find_one({'email': form['email'], 'password': form['password']})
-			if user:
-				flask.session['userid'] = str(user['_id'])
-				return flask.redirect(flask.url_for('index'))
-		except KeyError:
-			pass
-	return render_template('login')
+	form = flask.request.form
+	try:
+		user = get_db().users.find_one({'email': form['email'], 'password': form['password']})
+		if user:
+			flask.session['userid'] = str(user['_id'])
+			return 'ok'
+	except KeyError:
+		pass
+	return 'not okay'
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

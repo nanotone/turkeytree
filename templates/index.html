@@ -16,6 +16,29 @@
 	<div id="loginRegister">
 		<a id="loginButton" class="button"><span>Login</span></a>
 		<a id="registerButton" class="button"><span>Register</span></a>
+
+		<div id="loginFormContainer" style="display:none">
+			<a href="" class="close-button">Close</a>
+
+			<h1>Login</h1>
+
+			<span id="loginWrong" style="color:red; display:none">Wrong credentials</span>
+			<form id="loginForm" action="/login" method="POST">
+				<div class="form-item">
+					<label>Email:</label>
+					<input name="email" type="text" placeholder="email" />
+				</div>
+
+				<div class="form-item">
+					<label>Password:</label>
+					<input name="password" type="password" placeholder="password" />
+				</div>
+
+				<button type="submit" value="submit"><span>Submit</span></button>
+			</form>
+
+			or <a href="/register">register</a>
+		</div><!-- #loginForm -->
 	</div>
 </div><!-- #container -->
 

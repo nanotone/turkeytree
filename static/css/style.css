@@ -53,7 +53,7 @@ h1 {
 	#loginRegister {
 		position: relative;
 
-		#loginForm, #registerForm {
+		#loginFormContainer, #registerForm {
 			position: absolute;
 			top: 0;
 			width: 100%;

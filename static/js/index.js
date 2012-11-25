@@ -1,16 +1,7 @@
 $(document).ready(function(){
 	$('#loginButton').click(function(e){
 		e.preventDefault();
-
-		if($('#loginForm').length == 0) {
-			$.get('/login', function(data){
-				$('#loginRegister').append(data);
-			});
-		}
-		else {
-			$('#loginForm').show();
-		}
-		
+		$('#loginFormContainer').show();
 		$('#registerForm').hide();
 	});
 
@@ -26,7 +17,19 @@ $(document).ready(function(){
 			$('#registerForm').show();
 		}
 
-		$('#loginForm').hide();
+		$('#loginFormContainer').hide();
+	});
+
+	$('#loginForm').submit(function(e) {
+		e.preventDefault();
+		$.post('/login', $(this).serialize(), function(data) {
+			if (data == 'ok') {
+				window.location.href = '/';
+			}
+			else {
+				$('#loginWrong').show();
+			}
+		});
 	});
 
 	$('.close-button').click(function(e){
