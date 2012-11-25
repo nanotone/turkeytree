@@ -130,21 +130,27 @@ def photo_create():
 	photo = flask.request.files.get('photo')
 	if not photo or photo.filename.split('.')[-1].lower() not in ('jpg', 'jpeg'):
 		return "not jpeg"
-	doc = {'time': time.time()}
+	doc = {'created': time.time()}
 	doc['_id'] = fileid = bson.ObjectId()
 	doc['original_path'] = doc['path'] = path = 'static/upload/%s.jpg' % (fileid)
 	photo.save(path)
 	if not imglib.is_jpeg(path):
 		return "not jpeg"
+
 	#sha1 = subprocess.check_output(['sha1sum', path], universal_newlines=True).split()[0]
 	#doc['sha1'] = sha1
 	exif = imglib.get_exif(path)
-	if exif and exif.get('orientation') != 'Top-left':
-		doc['path'] = 'static/upload/%s_rotated.jpg' % (fileid)
-		imglib.auto_orient(path, doc['path'])
-		path = doc['path']
+	if exif:
+		if exif.get('orientation') != 'Top-left':
+			doc['path'] = 'static/upload/%s_rotated.jpg' % (fileid)
+			imglib.auto_orient(path, doc['path'])
+			path = doc['path']
+		tzoned_time = imglib.get_tzoned_time(exif)
+		if tzoned_time:
+			doc['time'] = tzoned_time
+
 	doc['tn'] = 'static/upload/%s_tn.jpg' % (fileid)
-	imglib.thumnailize(path, doc['tn'])
+	imglib.thumbnailize(path, doc['tn'])
 	doc['tn_size'] = imglib.get_dimensions(doc['tn'])
 	return json_encoder.encode(doc)
 
