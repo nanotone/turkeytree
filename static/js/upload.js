@@ -5,6 +5,15 @@ function abortEvent(e) {
 	e.stopPropagation();
 }
 
+function formatDate(date) {
+	var pad2Digits = function(n) { return String(100 + n).substr(1); };
+	var hour = date.getUTCHours();
+	return (String(date.getUTCFullYear()) + "-" + (date.getUTCMonth() + 1) + "-"
+		+ date.getUTCDate() + " " + ((hour + 11) % 12 + 1) + ":"
+		+ pad2Digits(date.getUTCMinutes()) + ":" + pad2Digits(date.getUTCSeconds())
+		+ " " + (hour < 12 ? 'am':'pm'));
+}
+
 function previewImage(file) {
 	var fileid;
 	var $thumbContainer = $('<div class="upload-thumb"><img /><div class="progressbar"></div><div class="time"></div></div>');
@@ -35,12 +44,7 @@ function previewImage(file) {
 			$thumbContainer.height(response.tn_size[1]);
 			$img.attr('src', '/' + response.tn);  // make this less hackish?
 			var date = new Date(response.time.naive * 1000);
-			var hour = date.getUTCHours();
-			var dtstr = (String(date.getUTCFullYear()) + "-" + String(date.getUTCMonth() + 1)
-				+ "-" + String(date.getUTCDate()) + " " + String((hour + 11) % 12 + 1) + ":"
-				+ String(date.getUTCMinutes()) + ":" + String(date.getUTCSeconds()) + " "
-				+ (hour < 12 ? 'am':'pm'));
-			$thumbContainer.children('.time').text(dtstr);
+			$thumbContainer.children('.time').text(formatDate(date));
 			var $fileids = $('#fileids');
 			$fileids.val($fileids.val() + ' ' + fileid);
 			$('#submit-button').show();
@@ -57,8 +61,7 @@ function previewImage(file) {
 
 
 function dropHandler(e) {
-	e.preventDefault();
-	e.stopPropagation();
+	abortEvent(e);
 	var files = e.dataTransfer.files;
 	for (var i = 0; i < files.length; i++) {
 		previewImage(files[i]);
