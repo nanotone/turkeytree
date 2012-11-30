@@ -6,6 +6,7 @@ import time
 import bson
 import flask
 import pymongo
+from werkzeug.exceptions import NotFound
 
 import imglib
 
@@ -113,7 +114,7 @@ def album_create():
 def album(albumid):
 	album = get_album(albumid)
 	if not album:
-		return "album not found"
+		raise NotFound("album not found")
 	photos = list(get_db().photos.find({'_id': {'$in': album.get('photos', [])}}))
 	return render_template('album', album=album, photos=photos)
 
@@ -122,7 +123,7 @@ def album(albumid):
 def album_upload(albumid):
 	album = get_album(albumid)
 	if not album:
-		return "album not found"
+		raise NotFound("album not found")
 	if flask.request.method == 'GET':
 		return render_template('upload', album=album)
 	else:
@@ -131,6 +132,7 @@ def album_upload(albumid):
 			fileids = list(map(bson.ObjectId, set(form.get('fileids', '').strip().split())))
 			if fileids and get_db().photos.find({'_id': {'$in': fileids}}).count() == len(fileids):
 				get_db().albums.update({'_id': album['_id']}, {'$pushAll': {'photos': fileids}})
+				get_db().photos.update({'_id': {'$in': fileids}}, {'$set': {'albumid': album['_id']}})
 		except Exception:
 			pass  # inform the user
 		return flask.redirect(flask.url_for('album', albumid=albumid))
@@ -140,13 +142,13 @@ def album_upload(albumid):
 def photo_create():
 	photo = flask.request.files.get('photo')
 	if not photo or photo.filename.split('.')[-1].lower() not in ('jpg', 'jpeg'):
-		return "not jpeg"
+		return '{"err": "NOT_A_JPEG"}'
 	doc = {'created': time.time()}
 	doc['_id'] = fileid = bson.ObjectId()
 	doc['original_path'] = doc['path'] = path = 'static/upload/%s.jpg' % (fileid)
 	photo.save(path)
 	if not imglib.is_jpeg(path):
-		return "not jpeg"
+		return '{"err": "NOT_A_JPEG"}'
 
 	#sha1 = subprocess.check_output(['sha1sum', path], universal_newlines=True).split()[0]
 	#doc['sha1'] = sha1
